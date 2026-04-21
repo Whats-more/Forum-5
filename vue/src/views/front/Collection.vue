@@ -3,8 +3,8 @@
       <el-card style="margin-top: 20px">
         <div style="margin: 10px 0">
             <el-input style="width: 200px" placeholder="请输入文章标题" suffix-icon="el-icon-search" v-model="title"></el-input>
-            <el-button class="ml-5" type="primary" @click="load">搜索</el-button>
-            <el-button type="warning" @click="reset">重置</el-button>
+            <el-button class="ml-5" style="background:#778CCD; color:white" @click="load">搜索</el-button>
+            <el-button style="background:#FB8B63; color:white"@click="reset">重置</el-button>
        </div>
           <el-table
                   :data="tableData"
@@ -12,7 +12,7 @@
               <el-table-column
                       label="文章">
                   <template slot-scope="scope">
-                      <a  style="color: #1a1a1a" @click="$router.push('/front/articlesDetail?id=' + scope.row.url )">{{scope.row.title }}</a>
+                      <a  style="color: #778CCD" @click="$router.push('/front/articlesDetail?id=' + scope.row.url )">{{scope.row.title }}</a>
                   </template>
               </el-table-column>
               <el-table-column

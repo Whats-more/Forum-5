@@ -4,8 +4,8 @@
             <el-col :span="24" >
                 <el-card>
                     <div style="display: flex">
-                        <div style="color: dodgerblue; font-size: 20px; flex: 1">分类</div>
-                        <div style="flex: 1; text-align: right">共 <span style="font-size: 20px; color: orange">{{total}}</span> 条</div>
+                        <div style="color: #FB8B63; font-size: 20px; flex: 1">分类</div>
+                        <div style="flex: 1; text-align: right">共 <span style="font-size: 20px; color: #FBAEAB">{{total}}</span> 条</div>
                     </div>
                     <!--分割线-->
                     <div style="height: 1px; margin: 10px 0; background-color: #ccc"></div>
@@ -14,7 +14,7 @@
 <!--分类   下拉~-->
                     <el-row :gutter="2">
 
-                        <el-col :span="3"   v-for="item in category" :class="{ categoryActive: item.name === index } " style="margin-bottom: 5px">
+                        <el-col :span="3"   v-for="item in category" :key="item.id" :class="{ categoryActive: item.name === index } " style="margin-bottom: 5px">
                         <div class="category"  >
                             <el-button @click="select(item.name)" size="15px">{{ item.name }}</el-button>
 

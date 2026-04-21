@@ -8,6 +8,19 @@ spring:
     url: jdbc:mysql://localhost:3306/a_cook?serverTimezone=GMT%2b8
     username: root
     password: 2013400236
+  # ====================== 139邮箱配置（已改好） ======================
+  mail:
+    host: smtp.139.com
+    port: 465
+    username: xiyueforum0425@139.com
+    password: 975cfe07b829bbe5cf00
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+  # ====================================================================
   redis:
     host: 127.0.0.1
     port: 6379
@@ -15,10 +28,10 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
+
 mybatis:
-  mapper-locations: classpath:mapper/*.xml  #扫描所有mybatis的xml文件
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -26,7 +39,3 @@ mybatis-plus:
 files:
   upload:
     path: D:/uploadPath/files/
-#    path: /home/files/
-
-
-

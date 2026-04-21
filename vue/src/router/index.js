@@ -6,6 +6,11 @@ Vue.use(VueRouter)
 
 const routes = [
   {
+    path: '/',
+    redirect: '/front/home'   // 一进网站 → 直接跳主页
+  },
+  
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue')
@@ -66,6 +71,17 @@ const routes = [
         name: 'FrontMessage',
         component: () => import('../views/front/Message')
       },
+      {
+        path: 'advice',
+        name: 'FrontAdvice',
+        component: () => import('../views/front/Advice')
+      },
+      // 新增：成就系统路由（front的子路由）
+      {
+        path: 'achievement',
+        name: 'FrontAchievement',
+        component: () => import('../views/front/Achievement')
+      }
     ]
   },
 ]

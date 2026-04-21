@@ -19,11 +19,13 @@ import com.chen.springboot.service.IMenuService;
 import com.chen.springboot.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chen.springboot.utils.TokenUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -50,6 +52,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Resource
     private IMenuService menuService;
 
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
     @Override
     public UserDTO login(UserDTO userDTO) {
         // 用户密码 md5加密
@@ -73,12 +78,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public User register(UserDTO userDTO) {
+        // ===================== 新增：验证码校验 =====================
+        String email = userDTO.getEmail();
+        String code = userDTO.getCode();
+        String realCode = redisTemplate.opsForValue().get("REGISTER_CODE:" + email);
+
+        if (realCode == null || !realCode.equals(code)) {
+            throw new ServiceException(Constants.CODE_600, "验证码错误或已过期");
+        }
+        // ==========================================================
+
         // 用户密码 md5加密
         userDTO.setPassword(SecureUtil.md5(userDTO.getPassword()));
         User one = getUserInfo(userDTO);
         if (one == null) {
             one = new User();
-            BeanUtil.copyProperties(userDTO, one, true);
+            BeanUtil.copyProperties(userDTO, one, true); // 这里会自动把 email 复制过去
             // 默认一个普通用户的角色
             one.setRole(RoleEnum.ROLE_USER.toString());
             if (one.getNickname() == null) {
@@ -98,11 +113,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new ServiceException(Constants.CODE_600, "密码错误");
         }
     }
-
-//    @Override
-//    public Page<User> findPage(Page<User> page, String username, String email, String address) {
-//        return userMapper.findPage(page, username, email, address);
-//    }
 
     private User getUserInfo(UserDTO userDTO) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();

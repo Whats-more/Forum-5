@@ -1,0 +1,13 @@
+/* 定义字体 */
+@font-face {
+  font-family: "SourceHanSans";
+  src: url("./fonts/思源黑体.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 全局应用这个字体 */
+* {
+  font-family: "SourceHanSans", sans-serif !important;
+}

@@ -1,6 +1,11 @@
 package com.chen.springboot.controller;
 
-
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.javamail.JavaMailSender;
+import java.util.concurrent.TimeUnit;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
@@ -16,15 +21,20 @@ import com.chen.springboot.controller.dto.UserPasswordDTO;
 import com.chen.springboot.entity.User;
 import com.chen.springboot.service.IUserService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -44,6 +54,12 @@ public class UserController {
     @Resource
     private IUserService userService;
 
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
+    private JavaMailSender javaMailSender;
+
     @PostMapping("/login")
     public Result login(@RequestBody UserDTO userDTO) {
         String username = userDTO.getUsername();
@@ -59,10 +75,63 @@ public class UserController {
     public Result register(@RequestBody UserDTO userDTO) {
         String username = userDTO.getUsername();
         String password = userDTO.getPassword();
+        String email = userDTO.getEmail();
+        String code = userDTO.getCode();
+
         if (StrUtil.isBlank(username) || StrUtil.isBlank(password)) {
             return Result.error(Constants.CODE_400, "参数错误");
         }
         return Result.success(userService.register(userDTO));
+    }
+
+    // ====================== 发送验证码（已填入你的Gmail） ======================
+    @PostMapping("/sendCode")
+    public Result sendCode(@RequestBody UserDTO userDTO) {
+        String email = userDTO.getEmail();
+
+        // 生成6位验证码
+        int code = (int) ((Math.random() * 9 + 1) * 100000);
+        String codeStr = String.valueOf(code);
+
+        // 存入Redis 5分钟
+        redisTemplate.opsForValue().set("REGISTER_CODE:" + email, codeStr, 5, TimeUnit.MINUTES);
+
+        try {
+            // 发送漂亮的HTML邮件
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // 👇 这里已经填好你的邮箱
+            helper.setFrom("internetdzuka30234@gmail.com", "曦岳平台");
+            helper.setTo(email);
+            helper.setSubject("【曦岳平台】注册验证码");
+
+            // ====================== 邮件样式（可随便改颜色、文字） ======================
+            String html = "<div style='max-width:600px;margin:30px auto;padding:36px;border-radius:20px;background:#1A1D23;font-family:-apple-system, BlinkMacSystemFont, \"Microsoft YaHei\", sans-serif;box-shadow:0 8px 30px rgba(0,0,0,0.2);'>"
+                + "<div style='text-align:center;margin-bottom:28px;'>"
+                + "<h2 style='color:#E9EAEC;margin:0;font-size:22px;font-weight:600;'>曦岳论坛平台 账号注册验证</h2>"
+                + "</div>"
+                + "<p style='color:#B0B4B9;font-size:15px;line-height:1.7;margin:0 0 22px 0;'>您好，感谢您注册曦岳平台。为保障您的账号安全，请完成邮箱验证。</p>"
+                + "<div style='padding:22px;border-radius:16px;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);text-align:center;margin:26px 0;'>"
+                + "<p style='color:#8A8D91;font-size:14px;margin:0 0 10px 0;'>您的验证码</p>"
+                + "<span style='font-size:32px;font-weight:700;letter-spacing:8px;color:#000000;'>" + codeStr + "</span>"
+                + "</div>"
+                + "<p style='color:#8A8D91;font-size:14px;line-height:1.6;margin:0 0 10px 0;'>· 验证码 5 分钟内有效</p>"
+                + "<p style='color:#8A8D91;font-size:14px;line-height:1.6;margin:0;'>· 请勿向他人泄露此验证码</p>"
+                + "<div style='margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.07);text-align:right;'>"
+                + "<p style='color:#6E7277;font-size:13px;margin:0;'>曦岳论坛平台</p>"
+                + "</div>"
+                + "</div>";
+            // ==========================================================================
+
+            helper.setText(html, true);
+            javaMailSender.send(message);
+
+            return Result.success("验证码发送成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error(Constants.CODE_500, "发送失败，请检查邮箱配置");
+        }
     }
 
     // 新增或者更新
@@ -212,4 +281,3 @@ public class UserController {
     }
 
 }
-
